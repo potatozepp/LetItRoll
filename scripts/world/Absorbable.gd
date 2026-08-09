@@ -10,6 +10,7 @@ class_name Absorbable
 @export var display_name: String = "Unknown"
 @export var is_hazard: bool = false
 @export var damage: float = 0.0
+@export var safe_size: float = 0.0
 
 func configure(data: Dictionary) -> void:
 	object_size = data.get("size", object_size)
@@ -21,6 +22,7 @@ func configure(data: Dictionary) -> void:
 	display_name = data.get("name", display_name)
 	is_hazard = data.get("hazard", is_hazard)
 	damage = data.get("damage", damage)
+	safe_size = data.get("safe_size", safe_size)
 	_update_visuals()
 
 func _ready() -> void:
