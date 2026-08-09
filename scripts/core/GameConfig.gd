@@ -9,10 +9,10 @@ class_name GameConfig
 @export var attraction_radius: float = 72.0
 @export var camera_min_zoom: float = 1.8
 @export var camera_zoom_smoothing: float = 4.0
-@export var spawn_radius: float = 1200.0
-@export var despawn_radius: float = 1800.0
-@export var max_pickups: int = 80
-@export var max_pickups_cap: int = 180
+@export var spawn_radius: float = 1800.0
+@export var despawn_radius: float = 2800.0
+@export var max_pickups: int = 72
+@export var max_pickups_cap: int = 120
 @export var hazard_damage_cooldown: float = 0.75
 @export var hazard_knockback: float = 360.0
 

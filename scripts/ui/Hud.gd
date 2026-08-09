@@ -13,6 +13,7 @@ const JOYSTICK_RADIUS := 118.0
 const JOYSTICK_MARGIN := Vector2(84.0, 84.0)
 var run_state: RunState
 var joystick_touch_index := -1
+var boost_touch_index := -1
 var joystick_center := Vector2.ZERO
 var joystick_vector := Vector2.ZERO
 var current_speed := 0.0
@@ -63,6 +64,7 @@ func show_game() -> void:
 	_place_joystick_at_default()
 
 func show_pause_menu() -> void:
+	_reset_boost()
 	pause_button.visible = false
 	joystick_base.visible = false
 	boost_button.visible = false
@@ -71,6 +73,7 @@ func show_pause_menu() -> void:
 	_add_button("Main Menu", func() -> void: main_menu_requested.emit())
 
 func show_main_menu(total_currency: int, upgrades: Dictionary) -> void:
+	_reset_boost()
 	pause_button.visible = false
 	joystick_base.visible = false
 	boost_button.visible = false
@@ -84,6 +87,7 @@ func show_main_menu(total_currency: int, upgrades: Dictionary) -> void:
 	_add_upgrade_button("stickiness", "Stickiness", total_currency, upgrades)
 
 func show_game_over(summary: Dictionary, total_currency: int, upgrades: Dictionary) -> void:
+	_reset_boost()
 	pause_button.visible = false
 	joystick_base.visible = false
 	boost_button.visible = false
@@ -93,6 +97,19 @@ func show_game_over(summary: Dictionary, total_currency: int, upgrades: Dictiona
 	_add_label("Coins banked: %d" % total_currency)
 	_add_button("Try Again", func() -> void: start_requested.emit())
 	_add_button("Main Menu", func() -> void: main_menu_requested.emit())
+
+func _input(event: InputEvent) -> void:
+	if not boost_button.visible or not (event is InputEventScreenTouch):
+		return
+	var boost_rect := Rect2(boost_button.global_position, boost_button.size)
+	if event.pressed and boost_touch_index == -1 and boost_rect.has_point(event.position):
+		boost_touch_index = event.index
+		_set_boost(true)
+		get_viewport().set_input_as_handled()
+	elif not event.pressed and event.index == boost_touch_index:
+		boost_touch_index = -1
+		_set_boost(false)
+		get_viewport().set_input_as_handled()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not joystick_base.visible:
@@ -138,6 +155,10 @@ func _is_blocked_touch_position(position: Vector2) -> bool:
 
 func _set_boost(pressed: bool) -> void:
 	mobile_boost_changed.emit(pressed)
+
+func _reset_boost() -> void:
+	boost_touch_index = -1
+	_set_boost(false)
 
 func _show_menu(title: String) -> void:
 	menu_layer.visible = true
