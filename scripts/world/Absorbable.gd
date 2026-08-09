@@ -7,6 +7,9 @@ class_name Absorbable
 @export var currency_value: int = 1
 @export var radius: float = 8.0
 @export var color: Color = Color.WHITE
+@export var display_name: String = "Unknown"
+@export var is_hazard: bool = false
+@export var damage: float = 0.0
 
 func configure(data: Dictionary) -> void:
 	object_size = data.get("size", object_size)
@@ -15,6 +18,9 @@ func configure(data: Dictionary) -> void:
 	currency_value = data.get("currency", currency_value)
 	radius = data.get("radius", radius)
 	color = data.get("color", color)
+	display_name = data.get("name", display_name)
+	is_hazard = data.get("hazard", is_hazard)
+	damage = data.get("damage", damage)
 	_update_visuals()
 
 func _ready() -> void:
