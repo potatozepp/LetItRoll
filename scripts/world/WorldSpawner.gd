@@ -77,7 +77,7 @@ func _choose_hazard_tier() -> Dictionary:
 	var candidates := hazard_tiers.filter(func(tier: Dictionary) -> bool: return tier["size"] <= reachable_size)
 	if candidates.is_empty():
 		return hazard_tiers[0]
-	var hazard := candidates[rng.randi_range(0, candidates.size() - 1)].duplicate()
+	var hazard = candidates[rng.randi_range(0, candidates.size() - 1)].duplicate()
 	hazard["hazard"] = true
 	return hazard
 
