@@ -1,11 +1,11 @@
 extends Resource
 class_name GameConfig
 
-@export var base_speed: float = 275.0
+@export var base_speed: float = 111.0
 @export var start_size: float = 1.0
 @export var start_health: float = 100.0
 @export var absorb_ratio: float = 0.92
-@export var growth_multiplier: float = 1.0
+@export var growth_multiplier: float = 0.1
 @export var attraction_radius: float = 72.0
 @export var camera_min_zoom: float = 1.8
 @export var camera_zoom_smoothing: float = 4.0
