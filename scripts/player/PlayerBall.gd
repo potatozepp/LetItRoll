@@ -13,6 +13,9 @@ var drag_origin: Vector2 = Vector2.ZERO
 var dragging := false
 var hazard_cooldowns: Dictionary = {}
 var boosting := false
+var mobile_input_vector: Vector2 = Vector2.ZERO
+var mobile_boost_pressed := false
+var current_speed := 0.0
 
 @onready var visual: CanvasItem = $Visual
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
@@ -34,15 +37,17 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	var keyboard := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	var move_input := keyboard if keyboard.length() > 0.05 else input_vector
-	if Input.is_action_pressed("boost") and move_input.length() > 0.05 and run_state.use_mana(config.mana_drain_per_second * delta):
+	var touch_input := mobile_input_vector if mobile_input_vector.length() > 0.05 else input_vector
+	var move_input := keyboard if keyboard.length() > 0.05 else touch_input
+	if (Input.is_action_pressed("boost") or mobile_boost_pressed) and move_input.length() > 0.05 and run_state.use_mana(config.mana_drain_per_second * delta):
 		boosting = true
 	else:
 		boosting = false
 		run_state.restore_mana(config.mana_regen_per_second * delta)
-	var size_speed_factor := clampf(1.0 / pow(maxf(run_state.size, 1.0), 0.38) + log(maxf(run_state.size, 1.0)) * 0.045, 0.36, 1.18)
+	var size_speed_factor := clampf(1.0 + log(maxf(run_state.size, 1.0)) * 0.115, 0.82, 1.85)
 	var boost_factor := config.boost_multiplier if boosting else 1.0
-	velocity = move_input * config.base_speed * size_speed_factor * boost_factor
+	current_speed = config.base_speed * size_speed_factor * boost_factor
+	velocity = move_input * current_speed
 	move_and_slide()
 	_consume_terrain()
 	_pull_nearby_pickups(delta)
@@ -94,6 +99,12 @@ func _absorb(pickup: Absorbable) -> void:
 	absorbed.emit(pickup)
 	pickup.queue_free()
 	_update_scale()
+
+func set_mobile_input(direction: Vector2) -> void:
+	mobile_input_vector = direction.limit_length(1.0)
+
+func set_mobile_boost(pressed: bool) -> void:
+	mobile_boost_pressed = pressed
 
 func reset_mana() -> void:
 	if run_state != null and config != null:
