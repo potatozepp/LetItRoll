@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://main"]
+[gd_scene load_steps=14 format=3 uid="uid://main"]
 
 [ext_resource type="Script" path="res://scripts/Main.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/core/RunState.gd" id="2"]
@@ -13,6 +13,55 @@ radius = 14.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_absorb"]
 radius = 86.0
+
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_joystick_base"]
+bg_color = Color(0.12, 0.15, 0.18, 0.42)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(0.85, 0.92, 1, 0.7)
+corner_radius_top_left = 130
+corner_radius_top_right = 130
+corner_radius_bottom_right = 130
+corner_radius_bottom_left = 130
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_joystick_knob"]
+bg_color = Color(0.85, 0.92, 1, 0.82)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.2, 0.28, 0.34, 0.9)
+corner_radius_top_left = 48
+corner_radius_top_right = 48
+corner_radius_bottom_right = 48
+corner_radius_bottom_left = 48
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_boost_normal"]
+bg_color = Color(0.94, 0.26, 0.12, 0.82)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(1, 0.85, 0.5, 0.9)
+corner_radius_top_left = 116
+corner_radius_top_right = 116
+corner_radius_bottom_right = 116
+corner_radius_bottom_left = 116
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_boost_pressed"]
+bg_color = Color(1, 0.55, 0.16, 0.94)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(1, 0.95, 0.75, 1)
+corner_radius_top_left = 116
+corner_radius_top_right = 116
+corner_radius_bottom_right = 116
+corner_radius_bottom_left = 116
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1")
@@ -117,28 +166,33 @@ text = "Pause"
 [node name="JoystickBase" type="PanelContainer" parent="Hud"]
 unique_name_in_owner = true
 visible = false
-offset_left = 84.0
-offset_top = 1550.0
-offset_right = 320.0
-offset_bottom = 1786.0
+offset_left = 760.0
+offset_top = 1510.0
+offset_right = 1020.0
+offset_bottom = 1770.0
 mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_joystick_base")
 
 [node name="JoystickKnob" type="PanelContainer" parent="Hud/JoystickBase"]
 unique_name_in_owner = true
-offset_left = 80.0
-offset_top = 80.0
-offset_right = 156.0
-offset_bottom = 156.0
+offset_left = 82.0
+offset_top = 82.0
+offset_right = 178.0
+offset_bottom = 178.0
 mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_joystick_knob")
 
 [node name="BoostButton" type="Button" parent="Hud"]
 unique_name_in_owner = true
 visible = false
-offset_left = 798.0
+offset_left = 84.0
 offset_top = 1538.0
-offset_right = 1030.0
+offset_right = 316.0
 offset_bottom = 1770.0
 theme_override_font_sizes/font_size = 34
+theme_override_styles/normal = SubResource("StyleBoxFlat_boost_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_boost_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_boost_pressed")
 text = "BOOST"
 
 [node name="MenuLayer" type="PanelContainer" parent="Hud"]
