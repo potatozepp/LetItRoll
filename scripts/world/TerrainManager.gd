@@ -2,8 +2,8 @@ extends Node2D
 class_name TerrainManager
 
 const TerrainChunkScene := preload("res://scripts/world/TerrainChunk.gd")
-const ACTIVE_RADIUS_CHUNKS := 2
-const DRAW_RADIUS_CHUNKS := 4
+const BASE_ACTIVE_RADIUS_CHUNKS := 3
+const MAX_ACTIVE_RADIUS_CHUNKS := 7
 
 @export var config: GameConfig
 @export var run_state: RunState
@@ -37,16 +37,23 @@ func consume_at(world_position: Vector2, radius: float, player_mass: float, grow
 
 func _update_chunks() -> void:
 	var center := _chunk_coord_for(player.global_position)
+	var active_radius := _active_radius_chunks()
+	var keep_radius := active_radius + 2
 	var needed := {}
-	for y in range(center.y - ACTIVE_RADIUS_CHUNKS, center.y + ACTIVE_RADIUS_CHUNKS + 1):
-		for x in range(center.x - ACTIVE_RADIUS_CHUNKS, center.x + ACTIVE_RADIUS_CHUNKS + 1):
+	for y in range(center.y - active_radius, center.y + active_radius + 1):
+		for x in range(center.x - active_radius, center.x + active_radius + 1):
 			var coord := Vector2i(x, y)
 			needed[coord] = true
 			if not chunks.has(coord):
 				_create_chunk(coord)
 	for coord in chunks.keys():
 		var chunk := chunks[coord] as TerrainChunk
-		chunk.visible = abs(coord.x - center.x) <= DRAW_RADIUS_CHUNKS and abs(coord.y - center.y) <= DRAW_RADIUS_CHUNKS
+		var inside_keep := abs(coord.x - center.x) <= keep_radius and abs(coord.y - center.y) <= keep_radius
+		if inside_keep:
+			chunk.visible = needed.has(coord)
+		else:
+			chunks.erase(coord)
+			chunk.queue_free()
 
 func _create_chunk(coord: Vector2i) -> void:
 	var chunk := TerrainChunkScene.new() as TerrainChunk
@@ -56,3 +63,7 @@ func _create_chunk(coord: Vector2i) -> void:
 
 func _chunk_coord_for(world_position: Vector2) -> Vector2i:
 	return Vector2i(floori(world_position.x / TerrainChunk.CHUNK_SIZE), floori(world_position.y / TerrainChunk.CHUNK_SIZE))
+
+func _active_radius_chunks() -> int:
+	var size_factor := pow(maxf(run_state.size, 1.0), 0.22)
+	return clampi(int(ceil(3.0 + size_factor)), BASE_ACTIVE_RADIUS_CHUNKS, MAX_ACTIVE_RADIUS_CHUNKS)

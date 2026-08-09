@@ -2,8 +2,9 @@ extends Node2D
 class_name WorldSpawner
 
 const ABSORBABLE_SCENE := preload("res://scenes/Absorbable.tscn")
-const BATCH_SPAWN_CHANCE := 0.16
+const BATCH_SPAWN_CHANCE := 0.22
 const BATCH_MIN_SIZE := 6
+const LARGE_SCALE_SIZE := 420.0
 
 @export var config: GameConfig
 @export var run_state: RunState
@@ -38,8 +39,9 @@ var hazard_tiers := [
 var batch_templates := [
 	{"name": "Grove", "tier": "Tree", "min_size": 25.0, "count_min": 7, "count_max": 14, "spread": 230.0, "loot_bonus": 0.72},
 	{"name": "Small City", "tier": "Building", "min_size": 85.0, "count_min": 8, "count_max": 15, "spread": 310.0, "loot_bonus": 0.62},
-	{"name": "Mountain Range", "tier": "Mountain", "min_size": 300.0, "count_min": 6, "count_max": 12, "spread": 520.0, "loot_bonus": 0.58},
-	{"name": "Big Sea", "tier": "Sea", "min_size": 680.0, "count_min": 5, "count_max": 10, "spread": 680.0, "loot_bonus": 0.52},
+	{"name": "Mountain Range", "tier": "Mountain", "min_size": 300.0, "count_min": 3, "count_max": 6, "spread": 520.0, "loot_bonus": 0.48, "mass_scale": 2.2, "radius_scale": 1.45},
+	{"name": "City District", "tier": "Metro", "min_size": 420.0, "count_min": 2, "count_max": 4, "spread": 760.0, "loot_bonus": 0.42, "mass_scale": 1.8, "radius_scale": 1.35},
+	{"name": "Big Sea", "tier": "Sea", "min_size": 680.0, "count_min": 2, "count_max": 4, "spread": 680.0, "loot_bonus": 0.4, "mass_scale": 2.4, "radius_scale": 1.5},
 	{"name": "Thorny Loot Patch", "tier": "Rock", "hazard": "Thorns", "min_size": 16.0, "count_min": 6, "count_max": 11, "hazard_count": 7, "spread": 260.0, "loot_bonus": 0.9},
 ]
 
@@ -52,7 +54,7 @@ func _process(_delta: float) -> void:
 	_trim_far_objects()
 	var target_pickups := _target_pickup_count()
 	while get_child_count() < target_pickups:
-		if rng.randf() < BATCH_SPAWN_CHANCE and get_child_count() + BATCH_MIN_SIZE < target_pickups:
+		if _large_scale_mode() or (rng.randf() < BATCH_SPAWN_CHANCE and get_child_count() + BATCH_MIN_SIZE < target_pickups):
 			_spawn_batch(target_pickups - get_child_count())
 		else:
 			_spawn_pickup()
@@ -62,11 +64,11 @@ func _spawn_pickup(position := Vector2.INF, forced_tier := {}) -> void:
 	var pickup := ABSORBABLE_SCENE.instantiate() as Absorbable
 	pickup.global_position = position if position != Vector2.INF else _random_spawn_position()
 	pickup.configure({
-		"size": tier["size"] * rng.randf_range(0.85, 1.2),
+		"size": tier["size"] * tier.get("mass_scale", 1.0) * rng.randf_range(0.85, 1.2),
 		"value": rng.randf_range(0.8, 1.4),
-		"score": maxi(1, int(tier["size"] * 5.0)),
+		"score": maxi(1, int(tier["size"] * tier.get("mass_scale", 1.0) * 5.0)),
 		"currency": _coin_value_for(tier),
-		"radius": tier["radius"],
+		"radius": tier["radius"] * tier.get("radius_scale", 1.0),
 		"color": tier["color"],
 		"name": tier["name"],
 		"hazard": tier.get("hazard", false),
@@ -88,6 +90,8 @@ func _spawn_batch(available_slots: int) -> void:
 		var offset := Vector2.from_angle(rng.randf_range(0.0, TAU)) * rng.randf_range(spread * 0.15, spread)
 		var cluster_tier := tier.duplicate()
 		cluster_tier["currency_multiplier"] = template.get("loot_bonus", 0.6)
+		cluster_tier["mass_scale"] = template.get("mass_scale", 1.0)
+		cluster_tier["radius_scale"] = template.get("radius_scale", 1.0)
 		_spawn_pickup(center + offset, cluster_tier)
 	if template.has("hazard"):
 		var hazard := _hazard_by_name(template["hazard"])
@@ -112,9 +116,10 @@ func _choose_spawn_tier() -> Dictionary:
 
 func _choose_material_tier() -> Dictionary:
 	var reachable_size := run_state.size * 1.35
-	var candidates := material_tiers.filter(func(tier: Dictionary) -> bool: return tier["size"] <= reachable_size)
+	var minimum_size := 0.0 if not _large_scale_mode() else 42.0
+	var candidates := material_tiers.filter(func(tier: Dictionary) -> bool: return tier["size"] <= reachable_size and tier["size"] >= minimum_size)
 	if candidates.is_empty():
-		return material_tiers[0]
+		return _material_by_name("Tree") if _large_scale_mode() else material_tiers[0]
 	if rng.randf() < 0.12 and candidates.size() < material_tiers.size():
 		return material_tiers[candidates.size()]
 	var roll := rng.randf()
@@ -133,7 +138,7 @@ func _choose_hazard_tier() -> Dictionary:
 	return hazard
 
 func _choose_batch_template() -> Dictionary:
-	var candidates := batch_templates.filter(func(template: Dictionary) -> bool: return run_state.size >= template["min_size"])
+	var candidates := batch_templates.filter(func(template: Dictionary) -> bool: return run_state.size >= template["min_size"] and (not _large_scale_mode() or template["min_size"] >= 300.0))
 	if candidates.is_empty():
 		return {}
 	return candidates[rng.randi_range(0, candidates.size() - 1)]
@@ -153,7 +158,7 @@ func _hazard_by_name(tier_name: String) -> Dictionary:
 func _coin_value_for(tier: Dictionary) -> int:
 	if tier.get("hazard", false):
 		return 0
-	var scaled_value := sqrt(tier["size"]) * 0.45 * tier.get("currency_multiplier", 1.0)
+	var scaled_value := sqrt(tier["size"] * tier.get("mass_scale", 1.0)) * 0.18 * tier.get("currency_multiplier", 1.0)
 	var coins := int(floor(scaled_value))
 	var fractional_chance := scaled_value - float(coins)
 	if rng.randf() < fractional_chance:
@@ -164,7 +169,10 @@ func _hazard_chance() -> float:
 	return clampf(0.10 + log(maxf(run_state.size, 1.0)) * 0.018, 0.10, 0.24)
 
 func _scale_view_factor() -> float:
-	return pow(maxf(run_state.size, 1.0), 0.28)
+	return pow(maxf(run_state.size, 1.0), 0.32)
+
+func _large_scale_mode() -> bool:
+	return run_state.size >= LARGE_SCALE_SIZE
 
 func _current_spawn_radius() -> float:
 	return config.spawn_radius * _scale_view_factor()
@@ -173,7 +181,10 @@ func _current_despawn_radius() -> float:
 	return config.despawn_radius * _scale_view_factor()
 
 func _target_pickup_count() -> int:
-	return mini(config.max_pickups_cap, int(config.max_pickups * pow(_scale_view_factor(), 1.05)))
+	var count := int(config.max_pickups * pow(_scale_view_factor(), 0.75))
+	if _large_scale_mode():
+		count = int(count * clampf(pow(LARGE_SCALE_SIZE / maxf(run_state.size, LARGE_SCALE_SIZE), 0.28), 0.38, 0.75))
+	return mini(config.max_pickups_cap, maxi(36, count))
 
 func get_legend_entries() -> Array[Dictionary]:
 	var entries: Array[Dictionary] = []

@@ -87,11 +87,13 @@ func _touch_hazard(hazard: Absorbable, now_msec: int) -> void:
 		return
 	hazard_cooldowns[id] = now_msec
 	if _is_too_large_for_hazard(hazard):
+		hazard.queue_free()
 		return
 	var size_pressure := maxf(0.45, hazard.object_size / maxf(run_state.size, 0.1))
 	run_state.damage(hazard.damage * size_pressure)
 	var away := hazard.global_position.direction_to(global_position)
 	global_position += away * config.hazard_knockback * clampf(size_pressure, 0.6, 1.5) * get_physics_process_delta_time()
+	hazard.queue_free()
 
 func _is_too_large_for_hazard(hazard: Absorbable) -> bool:
 	var safe_size := hazard.safe_size
