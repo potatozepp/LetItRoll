@@ -44,7 +44,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		boosting = false
 		run_state.restore_mana(config.mana_regen_per_second * delta)
-	var size_speed_factor := clampf(1.0 + log(maxf(run_state.size, 1.0)) * 0.115, 0.82, 1.85)
+	var size_speed_factor := clampf(1.0 + log(maxf(run_state.size, 1.0)) * 0.075, 0.82, 1.55)
 	var boost_factor := config.boost_multiplier if boosting else 1.0
 	current_speed = config.base_speed * size_speed_factor * boost_factor
 	velocity = move_input * current_speed
@@ -86,10 +86,16 @@ func _touch_hazard(hazard: Absorbable, now_msec: int) -> void:
 	if now_msec - last_hit_msec < int(config.hazard_damage_cooldown * 1000.0):
 		return
 	hazard_cooldowns[id] = now_msec
-	var size_pressure := maxf(0.65, hazard.object_size / maxf(run_state.size, 0.1))
+	if _is_too_large_for_hazard(hazard):
+		return
+	var size_pressure := maxf(0.45, hazard.object_size / maxf(run_state.size, 0.1))
 	run_state.damage(hazard.damage * size_pressure)
 	var away := hazard.global_position.direction_to(global_position)
 	global_position += away * config.hazard_knockback * clampf(size_pressure, 0.6, 1.5) * get_physics_process_delta_time()
+
+func _is_too_large_for_hazard(hazard: Absorbable) -> bool:
+	var safe_size := hazard.safe_size
+	return safe_size > 0.0 and run_state.size >= safe_size
 
 func _absorb(pickup: Absorbable) -> void:
 	if not is_instance_valid(pickup) or not growth_mode.can_absorb(run_state.size, pickup.object_size, config):

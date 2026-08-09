@@ -10,6 +10,7 @@ signal mobile_move_changed(direction: Vector2)
 signal mobile_boost_changed(pressed: bool)
 
 const JOYSTICK_RADIUS := 118.0
+const JOYSTICK_MARGIN := Vector2(84.0, 84.0)
 var run_state: RunState
 var joystick_touch_index := -1
 var joystick_center := Vector2.ZERO
@@ -59,6 +60,7 @@ func show_game() -> void:
 	joystick_base.visible = true
 	boost_button.visible = true
 	menu_layer.visible = false
+	_place_joystick_at_default()
 
 func show_pause_menu() -> void:
 	pause_button.visible = false
@@ -96,10 +98,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not joystick_base.visible:
 		return
 	if event is InputEventScreenTouch:
-		if event.pressed and event.position.x < get_viewport().get_visible_rect().size.x * 0.5 and event.position.y > 1200.0:
+		if event.pressed and joystick_touch_index == -1 and not _is_blocked_touch_position(event.position):
 			joystick_touch_index = event.index
-			joystick_center = event.position
-			joystick_base.global_position = joystick_center - joystick_base.size * 0.5
+			_place_joystick_at(event.position)
 			_update_joystick(event.position)
 		elif event.index == joystick_touch_index:
 			_reset_joystick()
@@ -115,8 +116,25 @@ func _reset_joystick() -> void:
 	joystick_touch_index = -1
 	joystick_vector = Vector2.ZERO
 	if joystick_knob != null and joystick_base != null:
+		_place_joystick_at_default()
 		joystick_knob.position = joystick_base.size * 0.5 - joystick_knob.size * 0.5
 	mobile_move_changed.emit(Vector2.ZERO)
+
+func _place_joystick_at_default() -> void:
+	if joystick_base == null:
+		return
+	var viewport_size := get_viewport().get_visible_rect().size
+	var center := Vector2(viewport_size.x - JOYSTICK_MARGIN.x - joystick_base.size.x * 0.5, viewport_size.y - JOYSTICK_MARGIN.y - joystick_base.size.y * 0.5)
+	_place_joystick_at(center)
+
+func _place_joystick_at(position: Vector2) -> void:
+	joystick_center = position
+	joystick_base.global_position = joystick_center - joystick_base.size * 0.5
+
+func _is_blocked_touch_position(position: Vector2) -> bool:
+	if boost_button.visible and Rect2(boost_button.global_position, boost_button.size).has_point(position):
+		return true
+	return menu_layer.visible and Rect2(menu_layer.global_position, menu_layer.size).has_point(position)
 
 func _set_boost(pressed: bool) -> void:
 	mobile_boost_changed.emit(pressed)
