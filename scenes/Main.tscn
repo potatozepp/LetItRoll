@@ -58,50 +58,96 @@ process_mode = 3
 script = ExtResource("6")
 
 [node name="Panel" type="PanelContainer" parent="Hud"]
-offset_left = 20.0
-offset_top = 20.0
-offset_right = 300.0
-offset_bottom = 430.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 1056.0
+offset_bottom = 126.0
 
-[node name="Stats" type="VBoxContainer" parent="Hud/Panel"]
+[node name="Stats" type="HBoxContainer" parent="Hud/Panel"]
+alignment = 1
 
 [node name="SizeLabel" type="Label" parent="Hud/Panel/Stats"]
 unique_name_in_owner = true
-text = "Size: Dust 1.00x"
+custom_minimum_size = Vector2(160, 0)
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+text = "Dust 1.00x"
 
 [node name="ScoreLabel" type="Label" parent="Hud/Panel/Stats"]
 unique_name_in_owner = true
-text = "Score: 0"
+custom_minimum_size = Vector2(130, 0)
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+text = "Score 0"
 
 [node name="CurrencyLabel" type="Label" parent="Hud/Panel/Stats"]
 unique_name_in_owner = true
-text = "Coins: 0"
+custom_minimum_size = Vector2(130, 0)
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+text = "Coins 0"
 
 [node name="HealthLabel" type="Label" parent="Hud/Panel/Stats"]
 unique_name_in_owner = true
-text = "Health: 100"
+custom_minimum_size = Vector2(150, 0)
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+text = "HP 100/100"
 
 [node name="ManaLabel" type="Label" parent="Hud/Panel/Stats"]
 unique_name_in_owner = true
-text = "Mana: 100/100"
+custom_minimum_size = Vector2(160, 0)
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+text = "Boost 100/100"
+
+[node name="SpeedLabel" type="Label" parent="Hud/Panel/Stats"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 0)
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+text = "Speed 0"
 
 [node name="PauseButton" type="Button" parent="Hud/Panel/Stats"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+theme_override_font_sizes/font_size = 24
 text = "Pause"
 
-[node name="LegendTitle" type="Label" parent="Hud/Panel/Stats"]
-text = "Legend"
-
-[node name="LegendList" type="VBoxContainer" parent="Hud/Panel/Stats"]
+[node name="JoystickBase" type="PanelContainer" parent="Hud"]
 unique_name_in_owner = true
+visible = false
+offset_left = 84.0
+offset_top = 1550.0
+offset_right = 320.0
+offset_bottom = 1786.0
+mouse_filter = 2
+
+[node name="JoystickKnob" type="PanelContainer" parent="Hud/JoystickBase"]
+unique_name_in_owner = true
+offset_left = 80.0
+offset_top = 80.0
+offset_right = 156.0
+offset_bottom = 156.0
+mouse_filter = 2
+
+[node name="BoostButton" type="Button" parent="Hud"]
+unique_name_in_owner = true
+visible = false
+offset_left = 798.0
+offset_top = 1538.0
+offset_right = 1030.0
+offset_bottom = 1770.0
+theme_override_font_sizes/font_size = 34
+text = "BOOST"
 
 [node name="MenuLayer" type="PanelContainer" parent="Hud"]
 unique_name_in_owner = true
 process_mode = 3
-offset_left = 120.0
-offset_top = 320.0
-offset_right = 600.0
-offset_bottom = 880.0
+offset_left = 110.0
+offset_top = 420.0
+offset_right = 970.0
+offset_bottom = 1290.0
 
 [node name="MenuContent" type="VBoxContainer" parent="Hud/MenuLayer"]
 alignment = 1
@@ -109,6 +155,7 @@ alignment = 1
 [node name="MenuTitle" type="Label" parent="Hud/MenuLayer/MenuContent"]
 unique_name_in_owner = true
 horizontal_alignment = 1
+theme_override_font_sizes/font_size = 64
 text = "Let It Roll"
 
 [node name="MenuBody" type="VBoxContainer" parent="Hud/MenuLayer/MenuContent"]

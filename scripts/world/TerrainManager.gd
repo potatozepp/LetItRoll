@@ -12,6 +12,12 @@ const DRAW_RADIUS_CHUNKS := 4
 
 var chunks := {}
 
+func reset_progress() -> void:
+	for chunk in chunks.values():
+		if is_instance_valid(chunk):
+			chunk.queue_free()
+	chunks.clear()
+
 func _process(_delta: float) -> void:
 	if player == null:
 		return

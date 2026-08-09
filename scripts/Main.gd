@@ -34,6 +34,8 @@ func _ready() -> void:
 	hud.main_menu_requested.connect(_show_main_menu)
 	hud.start_requested.connect(_start_game)
 	hud.upgrade_requested.connect(_buy_upgrade)
+	hud.mobile_move_changed.connect(player.set_mobile_input)
+	hud.mobile_boost_changed.connect(player.set_mobile_boost)
 	run_state.run_ended.connect(_on_run_ended)
 	_apply_upgrades()
 	hud.show_main_menu(total_currency, upgrades)
@@ -49,6 +51,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	if game_started and not get_tree().paused and not game_over:
 		run_state.elapsed_time += delta
+	hud.update_speed(player.current_speed)
 
 func _start_game() -> void:
 	game_started = true
@@ -56,6 +59,8 @@ func _start_game() -> void:
 	get_tree().paused = false
 	_apply_upgrades()
 	run_state.reset(config)
+	hud.set_max_health(config.start_health)
+	terrain_manager.reset_progress()
 	player.global_position = Vector2.ZERO
 	player.velocity = Vector2.ZERO
 	player.reset_mana()
@@ -102,6 +107,6 @@ func _upgrade_cost(upgrade_name: String) -> int:
 	return 25 + int(upgrades.get(upgrade_name, 0)) * 20
 
 func _apply_upgrades() -> void:
-	config.base_speed = 275.0 + float(upgrades["speed"]) * 24.0
+	config.base_speed = 310.0 + float(upgrades["speed"]) * 34.0
 	config.start_health = 100.0 + float(upgrades["health"]) * 20.0
 	config.attraction_radius = 72.0 + float(upgrades["stickiness"]) * 14.0
