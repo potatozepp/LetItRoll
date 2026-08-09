@@ -15,3 +15,10 @@ class_name GameConfig
 @export var max_pickups_cap: int = 180
 @export var hazard_damage_cooldown: float = 0.75
 @export var hazard_knockback: float = 360.0
+
+@export var boost_multiplier: float = 1.7
+@export var mana_max: float = 100.0
+@export var mana_drain_per_second: float = 35.0
+@export var mana_regen_per_second: float = 18.0
+@export var consumed_terrain_cooldown: float = 18.0
+@export var consumed_terrain_value_multiplier: float = 0.35

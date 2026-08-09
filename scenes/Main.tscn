@@ -54,6 +54,7 @@ script = ExtResource("7")
 script = ExtResource("5")
 
 [node name="Hud" type="CanvasLayer" parent="."]
+process_mode = 3
 script = ExtResource("6")
 
 [node name="Panel" type="PanelContainer" parent="Hud"]
@@ -80,8 +81,35 @@ text = "Coins: 0"
 unique_name_in_owner = true
 text = "Health: 100"
 
+[node name="ManaLabel" type="Label" parent="Hud/Panel/Stats"]
+unique_name_in_owner = true
+text = "Mana: 100/100"
+
+[node name="PauseButton" type="Button" parent="Hud/Panel/Stats"]
+unique_name_in_owner = true
+text = "Pause"
+
 [node name="LegendTitle" type="Label" parent="Hud/Panel/Stats"]
 text = "Legend"
 
 [node name="LegendList" type="VBoxContainer" parent="Hud/Panel/Stats"]
+unique_name_in_owner = true
+
+[node name="MenuLayer" type="PanelContainer" parent="Hud"]
+unique_name_in_owner = true
+process_mode = 3
+offset_left = 120.0
+offset_top = 320.0
+offset_right = 600.0
+offset_bottom = 880.0
+
+[node name="MenuContent" type="VBoxContainer" parent="Hud/MenuLayer"]
+alignment = 1
+
+[node name="MenuTitle" type="Label" parent="Hud/MenuLayer/MenuContent"]
+unique_name_in_owner = true
+horizontal_alignment = 1
+text = "Let It Roll"
+
+[node name="MenuBody" type="VBoxContainer" parent="Hud/MenuLayer/MenuContent"]
 unique_name_in_owner = true

@@ -3,6 +3,7 @@ class_name TerrainManager
 
 const TerrainChunkScene := preload("res://scripts/world/TerrainChunk.gd")
 const ACTIVE_RADIUS_CHUNKS := 2
+const DRAW_RADIUS_CHUNKS := 4
 
 @export var config: GameConfig
 @export var run_state: RunState
@@ -38,9 +39,8 @@ func _update_chunks() -> void:
 			if not chunks.has(coord):
 				_create_chunk(coord)
 	for coord in chunks.keys():
-		if not needed.has(coord):
-			chunks[coord].queue_free()
-			chunks.erase(coord)
+		var chunk := chunks[coord] as TerrainChunk
+		chunk.visible = abs(coord.x - center.x) <= DRAW_RADIUS_CHUNKS and abs(coord.y - center.y) <= DRAW_RADIUS_CHUNKS
 
 func _create_chunk(coord: Vector2i) -> void:
 	var chunk := TerrainChunkScene.new() as TerrainChunk
