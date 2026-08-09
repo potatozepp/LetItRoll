@@ -23,7 +23,7 @@ func _ready() -> void:
 	spawner.config = config
 	spawner.run_state = run_state
 	spawner.player = player
-	hud.setup(run_state)
+	hud.setup(run_state, spawner.get_legend_entries())
 	run_state.reset(config)
 	player._update_scale()
 

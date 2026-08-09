@@ -60,7 +60,7 @@ script = ExtResource("6")
 offset_left = 20.0
 offset_top = 20.0
 offset_right = 300.0
-offset_bottom = 178.0
+offset_bottom = 430.0
 
 [node name="Stats" type="VBoxContainer" parent="Hud/Panel"]
 
@@ -79,3 +79,9 @@ text = "Coins: 0"
 [node name="HealthLabel" type="Label" parent="Hud/Panel/Stats"]
 unique_name_in_owner = true
 text = "Health: 100"
+
+[node name="LegendTitle" type="Label" parent="Hud/Panel/Stats"]
+text = "Legend"
+
+[node name="LegendList" type="VBoxContainer" parent="Hud/Panel/Stats"]
+unique_name_in_owner = true

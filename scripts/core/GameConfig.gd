@@ -1,7 +1,7 @@
 extends Resource
 class_name GameConfig
 
-@export var base_speed: float = 260.0
+@export var base_speed: float = 275.0
 @export var start_size: float = 1.0
 @export var start_health: float = 100.0
 @export var absorb_ratio: float = 0.92
@@ -12,3 +12,6 @@ class_name GameConfig
 @export var spawn_radius: float = 1200.0
 @export var despawn_radius: float = 1800.0
 @export var max_pickups: int = 80
+@export var max_pickups_cap: int = 180
+@export var hazard_damage_cooldown: float = 0.75
+@export var hazard_knockback: float = 360.0
