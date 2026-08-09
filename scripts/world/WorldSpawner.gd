@@ -158,9 +158,9 @@ func _hazard_by_name(tier_name: String) -> Dictionary:
 func _coin_value_for(tier: Dictionary) -> int:
 	if tier.get("hazard", false):
 		return 0
-	var scaled_value := sqrt(tier["size"] * tier.get("mass_scale", 1.0)) * 0.18 * tier.get("currency_multiplier", 1.0)
+	var scaled_value = sqrt(tier["size"] * tier.get("mass_scale", 1.0)) * 0.18 * tier.get("currency_multiplier", 1.0)
 	var coins := int(floor(scaled_value))
-	var fractional_chance := scaled_value - float(coins)
+	var fractional_chance = scaled_value - float(coins)
 	if rng.randf() < fractional_chance:
 		coins += 1
 	return maxi(0, coins)

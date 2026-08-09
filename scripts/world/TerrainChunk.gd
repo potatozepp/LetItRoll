@@ -18,7 +18,7 @@ func configure(coord: Vector2i, seed_value: int) -> void:
 	_generate_cells()
 	queue_redraw()
 
-func consume_circle(world_center: Vector2, radius: float, player_mass: float, growth_mode: GrowthMode, config: GameConfig) -> Dictionary:
+func consume_circle(world_center: Vector2, radius: float, player_mass: float, growth_mode: GrowthMode, config: GameConfig, growth_budget: float) -> Dictionary:
 	var local_center := to_local(world_center)
 	var min_x := clampi(floori((local_center.x - radius) / CELL_SIZE), 0, CELLS_PER_SIDE - 1)
 	var max_x := clampi(floori((local_center.x + radius) / CELL_SIZE), 0, CELLS_PER_SIDE - 1)
@@ -40,7 +40,15 @@ func consume_circle(world_center: Vector2, radius: float, player_mass: float, gr
 			if not growth_mode.can_absorb(player_mass, layer["mass"], config):
 				continue
 			exposed_layer_indices[key] = layer_index + 1
-			result["growth"] += growth_mode.growth_for(layer["mass"], layer["value"], config)
+			var cell_growth := growth_mode.growth_for(
+				layer["mass"],
+				layer["value"],
+				config
+			)
+
+			if result["growth"] + cell_growth > growth_budget:
+				continue
+			result["growth"] += cell_growth
 			result["score"] += int(layer["mass"] * 8.0)
 			if rng.randf() < 0.08:
 				result["currency"] += maxi(1, int(sqrt(layer["mass"]) * 0.18))

@@ -25,15 +25,38 @@ func _process(_delta: float) -> void:
 
 func consume_at(world_position: Vector2, radius: float, player_mass: float, growth_mode: GrowthMode) -> void:
 	var center_coord := _chunk_coord_for(world_position)
+
+	# Terrain can provide at most 1% growth per physics tick.
+	var growth_rate := 0.002 / pow(maxf(player_mass, 1.0), 0.15)
+	var growth_budget := maxf(0.02, player_mass * growth_rate)
+	
 	for y in range(center_coord.y - 1, center_coord.y + 2):
 		for x in range(center_coord.x - 1, center_coord.x + 2):
+			if growth_budget <= 0.0:
+				return
+
 			var coord := Vector2i(x, y)
 			var chunk := chunks.get(coord) as TerrainChunk
 			if chunk == null:
 				continue
-			var result := chunk.consume_circle(world_position, radius, player_mass, growth_mode, config)
+
+			var result := chunk.consume_circle(
+				world_position,
+				radius,
+				player_mass,
+				growth_mode,
+				config,
+				growth_budget
+			)
+
 			if result["cells"] > 0:
-				run_state.add_growth(result["growth"], result["score"], result["currency"])
+				run_state.add_growth(
+					result["growth"],
+					result["score"],
+					result["currency"]
+				)
+
+				growth_budget -= result["growth"]
 
 func _update_chunks() -> void:
 	var center := _chunk_coord_for(player.global_position)
@@ -48,7 +71,7 @@ func _update_chunks() -> void:
 				_create_chunk(coord)
 	for coord in chunks.keys():
 		var chunk := chunks[coord] as TerrainChunk
-		var inside_keep := abs(coord.x - center.x) <= keep_radius and abs(coord.y - center.y) <= keep_radius
+		var inside_keep = abs(coord.x - center.x) <= keep_radius and abs(coord.y - center.y) <= keep_radius
 		if inside_keep:
 			chunk.visible = needed.has(coord)
 		else:
