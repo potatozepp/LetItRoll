@@ -28,7 +28,7 @@ func consume_circle(world_center: Vector2, radius: float, player_mass: float, gr
 	for y in range(min_y, max_y + 1):
 		for x in range(min_x, max_x + 1):
 			var key := Vector2i(x, y)
-			if consumed_cells.has(key):
+			if consumed_cells.has(key) and Time.get_ticks_msec() - int(consumed_cells[key]) < int(config.consumed_terrain_cooldown * 1000.0):
 				continue
 			var cell_center := Vector2((x + 0.5) * CELL_SIZE, (y + 0.5) * CELL_SIZE)
 			if cell_center.distance_to(local_center) > radius:
@@ -36,10 +36,12 @@ func consume_circle(world_center: Vector2, radius: float, player_mass: float, gr
 			var cell := cells[y * CELLS_PER_SIDE + x]
 			if not growth_mode.can_absorb(player_mass, cell["mass"], config):
 				continue
-			consumed_cells[key] = true
-			result["growth"] += growth_mode.growth_for(cell["mass"], cell["value"], config)
-			result["score"] += int(cell["mass"] * 8.0)
-			result["currency"] += maxi(1, int(sqrt(cell["mass"])))
+			var was_consumed := consumed_cells.has(key)
+			consumed_cells[key] = Time.get_ticks_msec()
+			var value_multiplier := config.consumed_terrain_value_multiplier if was_consumed else 1.0
+			result["growth"] += growth_mode.growth_for(cell["mass"], cell["value"] * value_multiplier, config)
+			result["score"] += int(cell["mass"] * 8.0 * value_multiplier)
+			result["currency"] += maxi(1, int(sqrt(cell["mass"]) * value_multiplier))
 			result["cells"] += 1
 	if result["cells"] > 0:
 		queue_redraw()
@@ -61,10 +63,11 @@ func _generate_cells() -> void:
 func _draw() -> void:
 	for y in range(CELLS_PER_SIDE):
 		for x in range(CELLS_PER_SIDE):
-			if consumed_cells.has(Vector2i(x, y)):
-				continue
 			var cell := cells[y * CELLS_PER_SIDE + x]
-			draw_rect(Rect2(Vector2(x, y) * CELL_SIZE, Vector2.ONE * CELL_SIZE), cell["color"], true)
+			var color: Color = cell["color"]
+			if consumed_cells.has(Vector2i(x, y)):
+				color = color.darkened(0.45)
+			draw_rect(Rect2(Vector2(x, y) * CELL_SIZE, Vector2.ONE * CELL_SIZE), color, true)
 
 func _color_for_mass(mass: float) -> Color:
 	if mass < 1.0:

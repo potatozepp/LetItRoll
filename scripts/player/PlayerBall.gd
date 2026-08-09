@@ -12,6 +12,7 @@ var input_vector: Vector2 = Vector2.ZERO
 var drag_origin: Vector2 = Vector2.ZERO
 var dragging := false
 var hazard_cooldowns: Dictionary = {}
+var boosting := false
 
 @onready var visual: CanvasItem = $Visual
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
@@ -34,8 +35,14 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	var keyboard := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	var move_input := keyboard if keyboard.length() > 0.05 else input_vector
+	if Input.is_action_pressed("boost") and move_input.length() > 0.05 and run_state.use_mana(config.mana_drain_per_second * delta):
+		boosting = true
+	else:
+		boosting = false
+		run_state.restore_mana(config.mana_regen_per_second * delta)
 	var size_speed_factor := clampf(1.0 / pow(maxf(run_state.size, 1.0), 0.38) + log(maxf(run_state.size, 1.0)) * 0.045, 0.36, 1.18)
-	velocity = move_input * config.base_speed * size_speed_factor
+	var boost_factor := config.boost_multiplier if boosting else 1.0
+	velocity = move_input * config.base_speed * size_speed_factor * boost_factor
 	move_and_slide()
 	_consume_terrain()
 	_pull_nearby_pickups(delta)
@@ -87,6 +94,12 @@ func _absorb(pickup: Absorbable) -> void:
 	absorbed.emit(pickup)
 	pickup.queue_free()
 	_update_scale()
+
+func reset_mana() -> void:
+	if run_state != null and config != null:
+		run_state.max_mana = config.mana_max
+		run_state.mana = run_state.max_mana
+		run_state.mana_changed.emit(run_state.mana, run_state.max_mana)
 
 func _update_scale() -> void:
 	var radius := _radius()
