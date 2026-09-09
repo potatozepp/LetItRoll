@@ -25,10 +25,9 @@ func _ready() -> void:
 	terrain_manager.config = config
 	terrain_manager.run_state = run_state
 	terrain_manager.player = player
-	spawner.config = config
-	spawner.run_state = run_state
-	spawner.player = player
-	hud.setup(run_state, spawner.get_legend_entries())
+	# WorldSpawner remains available for later bonus entities, but the terrain tiles are the core world.
+	spawner.process_mode = Node.PROCESS_MODE_DISABLED
+	hud.setup(run_state)
 	hud.pause_requested.connect(_pause_game)
 	hud.resume_requested.connect(_resume_game)
 	hud.main_menu_requested.connect(_show_main_menu)
@@ -64,6 +63,7 @@ func _start_game() -> void:
 	player.global_position = Vector2.ZERO
 	player.velocity = Vector2.ZERO
 	player.reset_mana()
+	player.reset_materials()
 	player._update_scale()
 	hud.show_game()
 

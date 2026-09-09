@@ -1,37 +1,28 @@
 # Let It Roll
 
-A Godot 4.x mobile MVP for a relaxing scale-growth game about rolling an extremely tiny sticky ball into larger materials until it becomes enormous.
+A Godot 4 portrait MVP about **physically building a rolling ball from terrain**. The ball does not gain hidden mass by touching the ground: it lifts finite material from hex terrain tiles, carries visible chunks on its surface, compacts that material while rolling, and grows from the material that remains attached.
 
-## MVP Scope
+## Core MVP loop
 
-Phase 1 is playable and intentionally simple:
+1. Start tiny in a concrete-dominated test island.
+2. Find the small grass and dirt hexes that are collectable at starter size.
+3. Roll over a patch to transfer its finite volume onto directional sectors of the ball.
+4. Keep moving to compress fresh material (grass becomes dirt); fresh surface capacity is limited.
+5. Balance movement directions to keep the ball round. Repeated straight rolling produces a visibly lopsided, unstable wheel shape.
+6. Water strips loose material. Larger physical size unlocks the data-driven gravel, stone, asphalt, concrete, and rock tiers.
 
-- Portrait mobile project configuration with lightweight 2D rendering.
-- Smooth drag/swipe controls for touch plus WASD keyboard controls for desktop testing.
-- Modular player, run state, growth mode, camera, HUD, and procedural spawning scripts.
-- Absorbable objects spawn endlessly around the player based on the current size tier.
-- The camera smoothly zooms out as the ball grows to sell the sense of scale.
+## Controls
 
-## Project Structure
+- **Desktop:** WASD to roll, Shift to boost, Escape to pause.
+- **Mobile:** drag the on-screen joystick and hold **BOOST**.
 
-```text
-scenes/                 Godot scenes for the main game and spawned entities
-scripts/core/           Shared run configuration and runtime state
-scripts/player/         Player movement and scale-aware camera behavior
-scripts/world/          Procedural spawning and absorbable world objects
-scripts/modes/          Growth rule resources for future game modes
-scripts/ui/             Gameplay HUD
-scripts/save/           Save-data foundation for upgrades and progression
-```
+## Architecture
 
-## Roadmap
+- `MaterialCatalog.gd` defines material hardness, minimum size, collection rate, density, and visual palette.
+- `TerrainChunk.gd` generates efficient, finite-volume hex tiles; `TerrainManager.gd` only returns collected material records and never awards hidden growth.
+- `PlayerBall.gd` owns material sectors, surface capacity, compaction, water wash-off, visual deformation, and instability failure.
+- `RunState.gd` receives a size derived from attached physical volume; legacy object-growth support remains isolated for future bonus entities.
 
-1. **Phase 1:** Player movement, camera, growth, procedural spawning, collision, size scaling.
-2. **Phase 2:** Hazards, upgrades, save system integration, menus, pause flow.
-3. **Phase 3:** Achievements, multiple growth modes, improved visuals, polish and balancing.
+## Testing the prototype
 
-Keep each phase playable before expanding systems.
-
-## Terrain-First World Design
-
-The ground is the primary resource. Terrain is generated in chunks of absorbable cells, and the player consumes cells underneath the ball when their current mass is high enough. Consumed cells stop drawing, leaving visible holes behind; spawned objects remain as secondary bonus resources layered above the destructible terrain.
+Start a run at the center of the small test island. Roll into a brown/green hex, then away: colored attached chunks remain on the ball and the tile darkens as volume is removed. Continue in one direction to see an uneven shell and warning, or change directions to spread the coating. Roll into blue water farther out to wash loose chunks off. Concrete is intentionally not collectable at starter size.

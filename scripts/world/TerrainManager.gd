@@ -2,8 +2,8 @@ extends Node2D
 class_name TerrainManager
 
 const TerrainChunkScene := preload("res://scripts/world/TerrainChunk.gd")
-const BASE_ACTIVE_RADIUS_CHUNKS := 3
-const MAX_ACTIVE_RADIUS_CHUNKS := 7
+const BASE_ACTIVE_RADIUS_CHUNKS := 2
+const MAX_ACTIVE_RADIUS_CHUNKS := 5
 
 @export var config: GameConfig
 @export var run_state: RunState
@@ -17,51 +17,48 @@ func reset_progress() -> void:
 		if is_instance_valid(chunk):
 			chunk.queue_free()
 	chunks.clear()
+	if player != null:
+		_update_chunks()
 
 func _process(_delta: float) -> void:
-	if player == null:
-		return
-	_update_chunks()
+	if player != null:
+		_update_chunks()
 
-func consume_at(world_position: Vector2, radius: float, player_mass: float, growth_mode: GrowthMode) -> void:
+# Terrain is sampled as finite hex tiles. This returns physical material records;
+# it intentionally never updates RunState or creates invisible growth.
+func collect_at(world_position: Vector2, radius: float, ball_size: float, capacity_left: float) -> Array[Dictionary]:
+	var records: Array[Dictionary] = []
+	if capacity_left <= 0.001:
+		return records
 	var center_coord := _chunk_coord_for(world_position)
-
-	# Terrain can provide at most 1% growth per physics tick.
-	var growth_rate := 0.002 / pow(maxf(player_mass, 1.0), 0.15)
-	var growth_budget := maxf(0.02, player_mass * growth_rate)
-	
+	var remaining := capacity_left
 	for y in range(center_coord.y - 1, center_coord.y + 2):
 		for x in range(center_coord.x - 1, center_coord.x + 2):
-			if growth_budget <= 0.0:
-				return
-
-			var coord := Vector2i(x, y)
-			var chunk := chunks.get(coord) as TerrainChunk
+			if remaining <= 0.001:
+				return records
+			var chunk := chunks.get(Vector2i(x, y)) as TerrainChunk
 			if chunk == null:
 				continue
+			var result := chunk.collect_circle(world_position, radius, ball_size, remaining)
+			for record in result:
+				records.append(record)
+				remaining -= float(record["volume"])
+	return records
 
-			var result := chunk.consume_circle(
-				world_position,
-				radius,
-				player_mass,
-				growth_mode,
-				config,
-				growth_budget
-			)
-
-			if result["cells"] > 0:
-				run_state.add_growth(
-					result["growth"],
-					result["score"],
-					result["currency"]
-				)
-
-				growth_budget -= result["growth"]
+func water_strength_at(world_position: Vector2, radius: float) -> float:
+	var center_coord := _chunk_coord_for(world_position)
+	var strength := 0.0
+	for y in range(center_coord.y - 1, center_coord.y + 2):
+		for x in range(center_coord.x - 1, center_coord.x + 2):
+			var chunk := chunks.get(Vector2i(x, y)) as TerrainChunk
+			if chunk != null:
+				strength = maxf(strength, chunk.water_strength_at(world_position, radius))
+	return strength
 
 func _update_chunks() -> void:
 	var center := _chunk_coord_for(player.global_position)
 	var active_radius := _active_radius_chunks()
-	var keep_radius := active_radius + 2
+	var keep_radius := active_radius + 1
 	var needed := {}
 	for y in range(center.y - active_radius, center.y + active_radius + 1):
 		for x in range(center.x - active_radius, center.x + active_radius + 1):
@@ -71,8 +68,7 @@ func _update_chunks() -> void:
 				_create_chunk(coord)
 	for coord in chunks.keys():
 		var chunk := chunks[coord] as TerrainChunk
-		var inside_keep = abs(coord.x - center.x) <= keep_radius and abs(coord.y - center.y) <= keep_radius
-		if inside_keep:
+		if abs(coord.x - center.x) <= keep_radius and abs(coord.y - center.y) <= keep_radius:
 			chunk.visible = needed.has(coord)
 		else:
 			chunks.erase(coord)
@@ -88,5 +84,4 @@ func _chunk_coord_for(world_position: Vector2) -> Vector2i:
 	return Vector2i(floori(world_position.x / TerrainChunk.CHUNK_SIZE), floori(world_position.y / TerrainChunk.CHUNK_SIZE))
 
 func _active_radius_chunks() -> int:
-	var size_factor := pow(maxf(run_state.size, 1.0), 0.22)
-	return clampi(int(ceil(3.0 + size_factor)), BASE_ACTIVE_RADIUS_CHUNKS, MAX_ACTIVE_RADIUS_CHUNKS)
+	return clampi(int(ceil(2.0 + log(maxf(run_state.size, 1.0)) * 0.25)), BASE_ACTIVE_RADIUS_CHUNKS, MAX_ACTIVE_RADIUS_CHUNKS)
