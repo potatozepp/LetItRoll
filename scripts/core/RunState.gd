@@ -32,6 +32,13 @@ func reset(config: GameConfig) -> void:
 	health_changed.emit(health)
 	mana_changed.emit(mana, max_mana)
 
+func set_physical_size(value: float) -> void:
+	var next_size := maxf(1.0, value)
+	if not is_equal_approx(size, next_size):
+		size = next_size
+		size_changed.emit(size)
+
+# Legacy bonus-object hook. Core terrain collection uses set_physical_size instead.
 func add_growth(amount: float, points: int, coins: int) -> void:
 	size += amount
 	score += points

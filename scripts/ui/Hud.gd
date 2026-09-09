@@ -78,7 +78,7 @@ func show_main_menu(total_currency: int, upgrades: Dictionary) -> void:
 	joystick_base.visible = false
 	boost_button.visible = false
 	_show_menu("Let It Roll")
-	_add_label("Roll, grow, and peel the world layer by layer.")
+	_add_label("Collect tiles, carry their material, and keep your ball balanced.")
 	_add_label("Coins: %d" % total_currency)
 	_add_button("Play", func() -> void: start_requested.emit())
 	_add_label("Upgrades")
