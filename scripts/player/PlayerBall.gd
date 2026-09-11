@@ -95,9 +95,9 @@ func _add_material(material_id: String, volume: float, direction: Vector2) -> vo
 	# The rolling direction picks the leading contact sectors; repeated straight
 	# rolling therefore builds a wheel-like lopsided shell.
 	var contact_angle := direction.angle() + PI * 0.5
-	var sector := posmodi(int(round(contact_angle / TAU * SECTOR_COUNT)), SECTOR_COUNT)
+	var sector = posmod(int(round(contact_angle / TAU * SECTOR_COUNT)), SECTOR_COUNT)
 	for offset in [-1, 0, 1]:
-		var target := posmodi(sector + offset, SECTOR_COUNT)
+		var target = posmod(sector + offset, SECTOR_COUNT)
 		var share := volume * (0.56 if offset == 0 else 0.22)
 		fresh_sectors[target][material_id] = float(fresh_sectors[target].get(material_id, 0.0)) + share
 

@@ -33,7 +33,7 @@ func collect_circle(world_center: Vector2, radius: float, ball_size: float, maxi
 		if not MaterialCatalog.can_collect(material_id, ball_size):
 			continue
 		var definition := MaterialCatalog.get_definition(material_id)
-		var amount := minf(float(tile["amount"]), remaining, float(definition["collect_rate"]))
+		var amount = minf(minf(float(tile["amount"]), remaining), float(definition["collect_rate"]))
 		if amount <= 0.0:
 			continue
 		tile["amount"] = float(tile["amount"]) - amount
